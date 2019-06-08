@@ -1,22 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e16cf3e2-f2e4-4c33-8efd-9580f2cde190" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/numpy-neural.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/other.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/.vs/GeneticAlgorithmsPractice/v14/.suo" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice.sln" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice.pyproj" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice/cartpole_balancer_hillclimbing_train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice/cartpole_balancer_randomsearch_train.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice/cartpole_hillclimbing_model.nn" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice/cartpole_hillclimbing_model_best.nn" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice/mnist_trial.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/GeneticAlgorithmsPractice/GeneticAlgorithmsPractice/shm_nn.py" beforeDir="false" />
-    </list>
+    <list default="true" id="e16cf3e2-f2e4-4c33-8efd-9580f2cde190" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,7 +48,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-12" />
     <option name="width" value="1302" />
     <option name="height" value="1392" />
@@ -96,6 +81,9 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/mnist_trial.py" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.path.for.package.eslint" value="project" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
   </component>
@@ -145,12 +133,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1559988742080</updated>
-      <workItem from="1559988743547" duration="610000" />
+      <workItem from="1559988743547" duration="1207000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="610000" />
+    <option name="totallyTimeSpent" value="1207000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1721" height="935" extended-state="6" />
