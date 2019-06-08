@@ -1,3 +1,3 @@
-# Reinforcement-Genetic-Algo-Practice
+# numpy-neural
 
-Practice pad for development and implementation of unsupervised learning using genetic algorithms & reinforcement learning.
+A Library implemented purely in numpy to for training and running convnets and fc nets.
