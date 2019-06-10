@@ -11,19 +11,9 @@ import cv2
 
 class TrainFeeder:
 
-    def __init__(self, data_dir, xy_fpaths, shuffle=True, batch_size=8,
-                 batches_per_queue=40, smart_resize=False,
-                 smart_squareify_side=720):
-        self.data_dir = data_dir
-        fpath_sets = np.array([xy_fpath.strip().split(' ') for xy_fpath in xy_fpaths])
-        self.train_fpaths = []
-        for fpath_set in fpath_sets:
-            x_path, y_path = [os.sep.join([self.data_dir, fpath]) for fpath in fpath_set]
-            self.train_fpaths.append(' '.join([x_path, y_path]))
-        self.train_fpaths = np.array(self.train_fpaths)
-
-        self.smart_resize = smart_resize
-        self.smart_squareify_side = smart_squareify_side
+    def __init__(self, train_fpaths, shuffle=True, batch_size=8,
+                 batches_per_queue=40):
+        self.train_fpaths = np.array(train_fpaths)
         logging.info('Initializing TrainFeeder Object on ' + str(self.train_fpaths.shape[0]) + ' data objects')
         if shuffle:
             np.random.shuffle(self.train_fpaths)
@@ -66,45 +56,25 @@ class TrainFeeder:
         return im_cropped
 
     def preprocess_set(self, x, y):
-        x_im = x.astype(np.float32)
-        y_im = np.expand_dims(y[:, :, 0], -1).astype(np.float32)
-        h, w, _ = x.shape
-        combined_im = np.concatenate([x_im, y_im], axis=-1)
-        combined_im_cropped = self.random_sliding_square_crop(combined_im)
-        chance_lr = np.random.uniform()
-        chance_ud = np.random.uniform()
-        if chance_lr >= .5:
-            combined_im_cropped = np.fliplr(combined_im_cropped)
-        if chance_ud >= .5:
-            combined_im_cropped = np.flipud(combined_im_cropped)
-        x_im_cropped = combined_im_cropped[:, :, :3]
-        x_im_cropped = cv2.resize(x_im_cropped, (self.smart_squareify_side, self.smart_squareify_side),
-                                  interpolation=cv2.INTER_LANCZOS4)
-        y_im_cropped = combined_im_cropped[:, :, -1]
-        y_im_cropped = cv2.resize(y_im_cropped, (self.smart_squareify_side, self.smart_squareify_side),
-                                  interpolation=cv2.INTER_NEAREST)
-        y_im_cropped = np.expand_dims(y_im_cropped.astype(np.uint8), -1)
-        return x_im_cropped, y_im_cropped
+        return x, y
 
     def fpath2data(self, batch_fpaths):
         batch_data_x = []
         batch_data_y = []
         batch_data_x_fpaths = []
         batch_data_y_fpaths = []
-        for fpath_set in self.batch_fpaths:
-            x_path, y_path = fpath_set.split(' ')
+        for fpath_set in batch_fpaths:
+            x_path = fpath_set.strip()
             x_im = cv2.imread(x_path)
-            y_im = cv2.imread(y_path)
+            y_im = '.'.join(x_path.split('_')[-1].split('.')[:-1])
             batch_data_x_fpaths.append(x_path)
-            batch_data_y_fpaths.append(y_path)
             x_im, y_im = self.preprocess_set(x_im, y_im)
             batch_data_x.append(x_im)
             batch_data_y.append(y_im)
         batch_data_x = np.array(batch_data_x)
         batch_data_y = np.array(batch_data_y)
         batch_data_x_fpaths = np.array(batch_data_x_fpaths)
-        batch_data_y_fpaths = np.array(batch_data_y_fpaths)
-        return batch_data_x, batch_data_y, batch_data_x_fpaths, batch_data_y_fpaths
+        return batch_data_x, batch_data_y, batch_data_x_fpaths
 
     def get_data(self, batch_size=None):
         if batch_size is not None:
@@ -132,10 +102,10 @@ class TrainFeeder:
         end_idx = start_idx + self.batch_size
         self.batch_fpaths = self.train_fpaths[start_idx:end_idx]
         try:
-            batch_data_x, batch_data_y, batch_data_x_fpaths, batch_data_y_fpaths = self.fpath2data(self.batch_fpaths)
+            batch_data_x, batch_data_y, batch_data_x_fpaths, = self.fpath2data(self.batch_fpaths)
         except:
             print(self.batch_fpaths)
-        return batch_data_x, batch_data_y, batch_data_x_fpaths, batch_data_y_fpaths, train_state
+        return batch_data_x, batch_data_y, batch_data_x_fpaths, train_state
 
     def __queue_filler_process(self):
         while True:
@@ -146,7 +116,7 @@ class TrainFeeder:
             try:
                 self.buffer.put(self.get_data())
             except:
-                logging.error('Buffer Load error!, retyring...')
+                logging.error('Buffer Load error!, retrying...')
                 continue
 
     def start_batch_queue_populater(self, batches_per_queue=20):
@@ -157,8 +127,7 @@ class TrainFeeder:
 
     def dequeue(self):
         if not self.buffer.empty():
-            self.batch_data_x, self.batch_data_y, \
-            self.batch_data_x_fpaths, self.batch_data_y_fpaths, self.train_state = self.buffer.get()
+            self.batch_data_x, self.batch_data_y, self.batch_data_x_fpaths, self.train_state = self.buffer.get()
             if self.train_state['previous_epoch_done']:
                 logging.info('----------------EPOCH ' + str(self.train_state['epoch'] - 1)
                              + ' COMPLETE----------------')
