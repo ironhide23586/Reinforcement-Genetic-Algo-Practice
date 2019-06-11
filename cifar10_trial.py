@@ -22,7 +22,7 @@ CLASS_NAMES = ['airplane',
                'horse',
                'ship',
                'truck']
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 NUM_EPOCHS = 1000
 EVAL_FREQ_ITERS = 50
 MODEL_SAVE_NAME = 'cifar10_fullyconnected.nn'
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     train_data_reader = TrainFeeder(train_fpaths, batch_size=BATCH_SIZE)
 
     val_fpaths = glob(val_dir + os.sep + '*')
-    val_data_reader = TrainFeeder(val_fpaths, batch_size=1000, shuffle=False, batches_per_queue=1)
+    val_data_reader = TrainFeeder(val_fpaths, batch_size=1000, shuffle=True, batches_per_queue=1)
     val_x, val_y = val_data_reader.dequeue()
     xv, yv = make_data_nn_consumable(val_x, val_y)
     yv_truth = yv.argmax(axis=1)
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     if os.path.isfile(MODEL_SAVE_NAME):
         nn = FullyConnectedNeuralNet(load_path=MODEL_SAVE_NAME)
     else:
-        nn = FullyConnectedNeuralNet([32 * 32 * 3, 512, 16, 10])
+        nn = FullyConnectedNeuralNet([32 * 32 * 3, 512, 256, 128, 16, 10])
     acc = 0.
 
     while train_data_reader.train_state['epoch'] <= NUM_EPOCHS:
