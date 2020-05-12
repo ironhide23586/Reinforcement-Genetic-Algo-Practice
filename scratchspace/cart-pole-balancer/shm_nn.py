@@ -120,64 +120,6 @@ class FCLayer():
             self.params = self.params - learn_rate * self.param_gradients + momentum * self.prev_param_gradients
 
 
-class FullyConnectedNeuralNet():
-
-    def __init__(self, neuron_counts=[], load_path='', learn_rate=.001, momentum=0., 
-                 activation='relu', init_mean=0., 
-                 init_var=.001, init_type='standard_normal'):
-        if load_path == '':
-            self.layers = []
-            self.neuron_counts = neuron_counts
-            self.input_layer = FCLayer(neuron_counts[0], neuron_counts[1], is_input=True, activation='none')
-            self.layers.append(self.input_layer)
-            self.num_layers = len(neuron_counts)
-            for i in range(1, self.num_layers - 1):
-                layer = FCLayer(neuron_counts[i - 1], neuron_counts[i], is_input=False,
-                                learn_rate=learn_rate, momentum=momentum, activation=activation,
-                                init_mean=init_mean, init_var=init_var, init_type=init_type)
-                self.layers.append(layer)
-            self.output_layer = FCLayer(neuron_counts[-2], neuron_counts[-1], is_input=False,
-                                        learn_rate=learn_rate, momentum=momentum, activation='softmax')
-            self.layers.append(self.output_layer)
-        else:
-            self.load(load_path)
-
-    def feed_forward(self, x):
-        self.layers[0].forward(x)
-        for i in range(1, self.num_layers):
-            self.layers[i].forward(self.layers[i - 1].y_activation)
-        self.out = self.layers[-1].y_activation
-        return self.out
-
-    def get_backprop_gradients(self, y_one_hot):
-        self.layers[-1].compute_gradients(y_one_hot)
-        for i in range(self.num_layers - 2, 0, -1):
-            self.layers[i].compute_gradients(self.layers[i + 1].backprop_gradients)
-
-    def update_weights(self):
-        for i in range(self.num_layers):
-            self.layers[i].update_params()
-
-    def train_step(self, x, y):
-        self.feed_forward(x)
-        self.get_backprop_gradients(y)
-        self.update_weights()
-        log_likelihood = -np.log((self.out * y).sum(axis=1))
-        loss = np.mean(log_likelihood)
-        return loss
-
-    def save(self, path):
-        pickle.dump(self.layers, open(path, 'wb'))
-
-    def load(self, path):
-        self.layers = pickle.load(open(path, 'rb'))
-        self.input_layer = self.layers[0]
-        self.output_layer = self.layers[-1]
-        self.neuron_counts = [self.layers[0].x.shape[1]]
-        for layer in self.layers[1:]:
-            self.neuron_counts.append(layer.params.shape[0])
-        self.num_layers = len(self.layers)
-
 def to_one_hot(labels, classes):
     ret = np.zeros([labels.shape[0], classes]).astype(np.float)
     ret[range(labels.shape[0]), labels] = 1.

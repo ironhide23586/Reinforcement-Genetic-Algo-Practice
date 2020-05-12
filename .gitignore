@@ -1,3 +1,4 @@
 /data/mnist
 /data/cifar10
 *.nn
+.idea/
