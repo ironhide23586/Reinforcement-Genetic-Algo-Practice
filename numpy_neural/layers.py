@@ -1,6 +1,6 @@
 import numpy as np
 import pickle
-
+import itertools
 
 class Layer:
 
@@ -13,7 +13,7 @@ class Layer:
 
         self.backward_pass_done = False
         self.params_dict = {}
-        self.layer_type=layer_type
+        self.layer_type = layer_type
         if self.layer_name == '':
             self.layer_name = str(self.layer_type)
         self.output_dims = None
@@ -37,6 +37,10 @@ class Layer:
         raise NotImplementedError
 
     def compute_gradients(self, derivatives):
+        if self.trainable:
+            raise NotImplementedError
+
+    def init_params(self):
         if self.trainable:
             raise NotImplementedError
 
@@ -95,17 +99,67 @@ class SigmoidLayer(Layer):
 
 class ConvLayer(Layer):  # format is NHWC
 
-    def __init__(self, prev_layer, num_filters, kernel_size, stride, padding='VALID',
-                 stop_grads=False, trainable=True, biased=True,
-                 param_init_type='gaussian', param_init_mean=0., param_init_var=.001):
-        super().__init__(prev_layer=prev_layer, stop_grads=stop_grads, trainable=trainable)
-        self.layer_type = 'Convolution'
-
+    def __init__(self, num_output_features, kernel_size, stride, padding='VALID', layer_name='', prev_layer=None,
+                 learn_rate=.001, momentum=0., param_init_mean=0., param_init_var=.001, param_init_type='gaussian',
+                 trainable=True, batch_size=None):
+        super().__init__(layer_name=layer_name, prev_layer=prev_layer, learn_rate=learn_rate, momentum=momentum,
+                         trainable=trainable, layer_type='Convolution')
+        self.stride = stride
+        self.padding = padding
         self.param_init_type = param_init_type
         self.param_init_mean = param_init_mean
         self.param_init_var = param_init_var
+        self.num_output_features = num_output_features
+        self.kernel_size = kernel_size
+        self.batch_size = batch_size
+        self.prev_layer = prev_layer
+        self.output_dims = [-1, -1, -1, self.num_output_features]
+        if self.prev_layer is not None:
+            self.num_input_features = np.sum(self.prev_layer.output_dims[-1])
+            self.init_params()
 
-        self.biased = biased
+    def init_params(self):
+        if self.param_init_type == 'gaussian':
+            self.filters = np.random.normal(self.param_init_mean, self.param_init_var,
+                                            size=[self.kernel_size, self.kernel_size,
+                                                  self.num_input_features, self.num_output_features])
+        elif self.param_init_type == 'standard_normal':
+            filters = np.random.randn(self.kernel_size, self.kernel_size,
+                                      self.num_input_features, self.num_output_features)
+        biases = np.zeros(self.num_output_features)
+        self.params = [filters, biases]
+        self.in2out_mindim = lambda dim_in: ((dim_in - self.kernel_size) // self.stride) + 1
+        out2in_mindim = lambda dim_out: self.stride * dim_out
+        out2in_maxdim = lambda dim_out: out2in_mindim(dim_out) + self.kernel_size - 1
+        get_receptive_field = lambda x, y: self.x[:, out2in_mindim(y): out2in_maxdim(y) + 1,
+                                                  out2in_mindim(x): out2in_maxdim(x) + 1, :]
+        reshape_rf_for_conv_input = lambda rf: np.rollaxis(np.tile(np.expand_dims(rf, 1), [1, self.num_output_features,
+                                                                                           1, 1, 1]),
+                                                           1, 5)
+        if self.batch_size is not None:
+            self.filters_repeated = np.tile(np.expand_dims(filters, 0), [self.batch_size, 1, 1, 1, 1])
+            self.biases_repeated = np.tile(np.expand_dims(biases, 0), [self.batch_size, 1])
+
+        get_conv_output_elemwise = lambda x, y: reshape_rf_for_conv_input(get_receptive_field(x, y)) \
+                                                * self.filters_repeated
+        get_filters_outs = lambda x, y: get_conv_output_elemwise(x, y).reshape([self.batch_size, -1,
+                                                                                self.num_output_features]).sum(axis=1)
+        self.get_layer_out_rf = lambda xy: get_filters_outs(xy[0], xy[1]) + self.biases_repeated
+
+    def get_params(self):
+        self.params_dict['weights'] = self.params[0]
+        self.params_dict['biases'] = self.params[1]
+        return self.params_dict
+
+    def forward(self, x):
+        batch_size, d_in, _, self.num_input_features = x.shape
+        if batch_size != self.batch_size:
+            self.batch_size = batch_size
+            self.init_params()
+        d_out = self.in2out_mindim(d_in)
+        all_out_xys = list(itertools.product(np.arange(d_out), np.arange(d_out)))
+        y = np.array(list(map(self.get_layer_out_rf, all_out_xys)))
+        self.y = np.transpose(np.rollaxis(y, 0, 2).reshape([self.batch_size, d_out, d_out, -1]), [0, 2, 1, 3])
 
 
 class BatchNormLayer(Layer):

@@ -4,7 +4,7 @@ import idx2numpy
 import os
 from sklearn.metrics import accuracy_score
 
-from numpy_neural.FCN import FullyConnectedNeuralNet
+from numpy_neural.nn_factory import ConvolutionalNeuralNet
 from numpy_neural.utils import to_one_hot
 
 data_dir = './data/mnist'
@@ -47,7 +47,7 @@ def train_and_save():
     x_train, y_train = get_mnist_trainset()
     x_test, y_test = get_mnist_testset()
     y_train_onehot = to_one_hot(y_train, 10)
-    nn = FullyConnectedNeuralNet(neuron_counts=[64, 32, 10], learn_rate=.001, momentum=.0)
+    nn = ConvolutionalNeuralNet(neuron_counts=[64, 32, 10], learn_rate=.001, momentum=.0)
     batch_size = 32
     epochs = 20
     iters = 1
@@ -60,7 +60,7 @@ def train_and_save():
         for step in range(steps):
             start_idx = step * batch_size
             end_idx = (step + 1) * batch_size
-            loss = nn.train_step(x_train[start_idx:end_idx], y_train_onehot[start_idx:end_idx])
+            loss = nn.train_step(x_train[start_idx:end_idx].reshape([-1, 28, 28, 1]), y_train_onehot[start_idx:end_idx])
             # print('Epoch', epoch + 1, 'Batch', step + 1, 'Iters', iters, 'Loss =', loss)
             if iters % test_iter_interval == 0:
                 preds = nn.feed_forward(x_test).argmax(axis=1)
